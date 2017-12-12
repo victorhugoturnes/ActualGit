@@ -34,12 +34,12 @@ int main(int argc, char const *argv[])
 		printf("error opening file\n");
 	 	return 0;
 	}
-/*
+
 	for (i = 0; revendedora[i]; ++i)
 	{
 		printer(revendedora[i], stdout);
 	}
-*/
+
 	ipva(revendedora);
 	close(revendedora);
 	return 0;
