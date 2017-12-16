@@ -12,11 +12,11 @@ typedef struct _item _item;
 typedef struct _venda _venda;
 typedef struct _comanda _comanda;
 
-void readGarcon(_garcom **garcon, FILE *in);
+void readGarcon(_garcom ***garcons, FILE *in);
 
 char *readLine(FILE *in);
 
-int load(_garcom **garcons, _item **itens, _comanda **comandas, _data *dia);
+int load(_garcom ***garcons, _item ***itens, _comanda ***comandas, _data *dia);
 
 void readHorario(_horario horario, FILE *in);
 void readDay(_data *dia, FILE *s);
@@ -66,14 +66,17 @@ int main(int argc, char const *argv[])
 	_item **itens; //lista de itens
 	_comanda **comandas; //lista de comandas
 
-	if(!load(garcons, itens, comandas, &dia))
+	printf("3-%p\n", &garcons);
+
+	if(!load(&garcons, &itens, &comandas, &dia))
 	{
 		//se erro no carregamento do arquivo, encerra o programa.
 		return 0;
 	}
+	printf("%d\n", garcons[0] );
 }
 
-int load(_garcom **garcons, _item **itens, _comanda **comandas, _data *dia)
+int load(_garcom ***garcons, _item ***itens, _comanda ***comandas, _data *dia)
 {
 	FILE *stream = fopen("consumo.txt", "r"); //abre o arquivo de rotacao diaria
 	int ii; //index
@@ -88,9 +91,15 @@ int load(_garcom **garcons, _item **itens, _comanda **comandas, _data *dia)
 	readDay(dia, stream); //le o dia
 
 
-	garcons = malloc(sizeof(_garcom*)*MAXARRAY); //aloca maxima possivel quantidade de garcons
-	comandas = malloc(sizeof(_comanda*)*MAXARRAY);//aloca maxima possivel quantidade de comandas
-	itens = malloc(sizeof(_item*)*MAXARRAY); //aloca maxima possivel quantidade de itens
+	*garcons = malloc(sizeof(_garcom*)*MAXARRAY); //aloca maxima possivel quantidade de garcons
+	*comandas = malloc(sizeof(_comanda*)*MAXARRAY);//aloca maxima possivel quantidade de comandas
+	*itens = malloc(sizeof(_item*)*MAXARRAY); //aloca maxima possivel quantidade de itens
+
+	*garcons[0] = NULL;
+	*comandas[0] = NULL;
+	*itens[0] = NULL;
+
+	*garcons[0] = malloc(sizeof(_garcom));
 
 	for (ii = 0; ii < feof(stream); ++ii)
 	{
@@ -109,9 +118,9 @@ void readDay(_data *dia, FILE *s)
 
 char *readLine(FILE *in)
 {
-	char *line = malloc(MAXSTRING*sizeof(char)+2); 				//buffer size
-	fgets(line, MAXSTRING, in); 							//reads line
-	line = realloc(line, strlen(line)*sizeof(char)); 	//reduce size to needed
+	char *line = malloc(MAXSTRING*sizeof(char)+2); //buffer size
+	fgets(line, MAXSTRING, in); //reads line
+	line = realloc(line, strlen(line)*sizeof(char)); //reduce size to needed
 	return line;
 }
 
@@ -123,8 +132,13 @@ void readHorario(_horario horario, FILE *in)
 }
 */
 
-void readGarcon(_garcom **garcon, FILE *in)
+void readGarcon(_garcom ***garcons, FILE *in)
 {
-	char *buffer;
-	readLine(in);
+	char *buffer = readLine(in);
+	int ii;
+
+	for (ii = 0; garcons[ii]; ++ii)
+	{
+		 strcmp(buffer, (*garcons[ii])->nome);
+	}
 }
