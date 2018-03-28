@@ -1,20 +1,22 @@
 #include <stdio.h>
 
-int main(){
-    int i,j;
-    double nota1, nota2;
-    double media = 0.0;
+int main(int argc, char const *argv[])
+{
+	int n, i, id, bestid;
+	double grade = 0, best = 0;
 
-    i = 0;
+	scanf("%d", &n);
 
-    while(i < 2){
-    scanf("%lf",&i);
-    if(i > 0.0 && i < 10.0){
-        media = (nota1 + nota2)/ 2.0;
-        printf("media = %.2lf\n",media);
-    } else{
-        printf("nota invalida\n");
-    }
-        i++;
-    }
+	for (i = bestid = 0; i < n; ++i)
+	{
+		scanf("%d %lf", &id, &grade);
+		if(grade >= 8 && grade > best)
+		{
+			best = grade;
+			bestid = id;
+		}
+	}
+	if(bestid) printf("%d\n",bestid );
+	else printf("Minimum note not reached\n");
+	return 0;
 }
