@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "exercicio.h"
 
-int debugg;
+Lista* insereCauda(Lista* l, int info);
 
 Lista* copyList(Lista* l);
 
@@ -10,41 +10,6 @@ int main(int argc, char const *argv[])
 {
 	Lista *list = NULL, *list2 = NULL, *str;
 	vazia(list);
-
-
-	list = insere(list, 0);
-	list = insere(list, 0);
-	list = insere(list, 0);
-	list = insere(list, 0);
-	list = insere(list, 0);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-	list2 = insere(list2, 1);
-
-
-/*
-	list = insere(list, 1);
-	list = insere(list, 2);
-	list = insere(list, 3);
-	list = insere(list, 4);
-	list2 = insere(list2, 5);
-	list2 = insere(list2, 6);
-	list2 = insere(list2, 7);
-	list2 = insere(list2, 8);
-	list2 = insere(list2, 9);
-*/
-	str = merge(list, list2);
-//	merge = inverte(list);
 
 
 	imprime(list);
@@ -79,12 +44,11 @@ Lista* remover(Lista* l, int info)
 	Lista *aux;
 	if(!vazia(l))
 	{
-		l->prox = remover(l->prox, info);
 		if(l->info == info){
 			aux = l->prox;
 			free(l);
 			return aux;
-		}
+		}else l->prox = remover(l->prox, info);
 	}
 	return l;
 }

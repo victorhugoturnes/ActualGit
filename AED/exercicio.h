@@ -7,13 +7,6 @@ int info;
 struct no *prox;
 } Lista;
 
-// Insere um elemento no final da lista
-// Entrada: lista e elemento a ser inserido
-// Retorno: lista alterada
-// Pré-condi ̧c~ao: nenhuma
-// Pós-condi ̧c~ao: elemento  ́e inserido na lista
-Lista* insereCauda(Lista* l, int info);
-
 // Testa se uma lista  ́e vazia
 // Entrada: lista
 // Retorno: 1 se a lista  ́e vazia ou 0 caso contr ́ario
