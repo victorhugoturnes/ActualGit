@@ -19,9 +19,12 @@ int main(int argc, char const *argv[])
 	list = insereCauda(list, 3);
 	list2 = insere(list2, 3);
 
+	remover(list, 1);
+	str = concatena(list, list2);
+
 	imprime(list);
 	imprime(list2);
-//	imprime(str);
+	imprime(str);
 	return 0;
 }
 
@@ -38,12 +41,19 @@ Lista* copyList(Lista* l)
 
 Lista* concatena(Lista* l1, Lista* l2)
 {
-	return vazia(l1) ? copyList(l2) : insere(concatena(l1->prox, l2), l1->info);
+	Lista *aux = l1;
+	return aux;
 }
 
 Lista* inverte(Lista* l)
 {
-	return vazia(l) ? NULL : insereCauda(inverte(l->prox), l->info);
+	Lista *aux = NULL;
+	while(!vazia(l))
+	{
+		aux = insere(aux, l->info);
+		l = l->prox;
+	}
+	return aux;
 }
 
 Lista* remover(Lista* l, int info)
@@ -89,14 +99,17 @@ Lista* insere(Lista* l, int info)
 
 Lista* insereCauda(Lista* l, int info)
 {
-	Lista *final = l, *prev;
-	while(!vazia(final)){
-		prev = final;
-		final = final->prox;
+	Lista *prev = l, *aux = l;
+	while(l)
+	{
+		prev = l;
+		l = l->prox;
 	}
 
-	prev->prox = (Lista*)malloc(sizeof(Lista));
-	prev->prox->info = info;
-	prev->prox->prox = NULL;
-	return l;
+	Lista *temp = (Lista*)malloc(sizeof(Lista));
+	temp->info = info;
+	temp->prox = l;
+
+	prev ? (prev->prox = temp) : (aux = temp);
+	return aux;
 }
