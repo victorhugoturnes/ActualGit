@@ -10,17 +10,22 @@ int main(int argc, char const *argv[])
 {
 	Lista *list = NULL, *list2 = NULL, *str;
 
-	list = insereCauda(list, 0);
-	list2 = insere(list2, 0);
-	list = insereCauda(list, 1);
-	list2 = insere(list2, 1);
-	list = insereCauda(list, 2);
-	list2 = insere(list2, 2);
-	list = insereCauda(list, 3);
-	list2 = insere(list2, 3);
+	list = insere(list, 0);
+	list = insere(list, 1);
+	list = insere(list, 2);
+	list = insere(list, 3);
+	list2 = insere(list2, 4);
+	list2 = insere(list2, 5);
+	list2 = insere(list2, 6);
+	list2 = insere(list2, 7);
+	list2 = insere(list2, 8);
+	list2 = insere(list2, 9);
+	list2 = insere(list2, 10);
+	list2 = insere(list2, 11);
 
-	remover(list, 1);
-	str = concatena(list, list2);
+	str = copyList(list);
+//	str = concatena(list, list2);
+	str = merge(list, list2);
 
 	imprime(list);
 	imprime(list2);
@@ -31,18 +36,48 @@ int main(int argc, char const *argv[])
 
 Lista* merge(Lista* l1, Lista* l2)
 {
-	return vazia(l1) ? copyList(l2) : insere(merge(l2, l1->prox), l1->info);
+	Lista *aux = NULL, *start;
+	while(!vazia(l2) && !vazia(l1))
+	{
+		aux = insere(aux, l1->info);
+		l1 = l1->prox;
+
+		aux = insere(aux, l2->info);
+		l2 = l2->prox;
+	}
+	start = aux;
+	Lista *secondLast = aux;
+	while(aux)
+	{
+		secondLast = aux;
+		aux = aux->prox;
+	}
+	if(!vazia(secondLast)) secondLast->prox  = vazia(l1) ? copyList(l2) : copyList(l1);
+	return start;
 }
 
 Lista* copyList(Lista* l)
 {
-	return vazia(l) ? NULL : insere(copyList(l->prox), l->info);
+	Lista *aux = NULL;
+	while(!vazia(l))
+	{
+		aux = insereCauda(aux, l->info);
+		l = l->prox;
+	}
+	return aux;
 }
 
 Lista* concatena(Lista* l1, Lista* l2)
 {
-	Lista *aux = l1;
-	return aux;
+	Lista *aux = copyList(l1), *tail, *head;
+	head = aux;
+	while(aux)
+	{
+		tail = aux;
+		aux = aux->prox;
+	}
+	tail->prox = copyList(l2);
+	return head;
 }
 
 Lista* inverte(Lista* l)
@@ -75,11 +110,10 @@ Lista* remover(Lista* l, int info)
 
 void imprime(Lista* l)
 {
-	Lista *aux = l;
-	while(!vazia(aux))
+	while(!vazia(l))
 	{
-		printf("(%d)->",aux->info);
-		aux = aux->prox;
+		printf("(%d)->",l->info);
+		l = l->prox;
 	}
 	printf("(!)\n");
 }
@@ -99,7 +133,7 @@ Lista* insere(Lista* l, int info)
 
 Lista* insereCauda(Lista* l, int info)
 {
-	Lista *prev = l, *aux = l;
+	Lista *prev = l, *first = l;
 	while(l)
 	{
 		prev = l;
@@ -110,6 +144,6 @@ Lista* insereCauda(Lista* l, int info)
 	temp->info = info;
 	temp->prox = l;
 
-	prev ? (prev->prox = temp) : (aux = temp);
-	return aux;
+	prev ? (prev->prox = temp) : (first = temp);
+	return first;
 }
