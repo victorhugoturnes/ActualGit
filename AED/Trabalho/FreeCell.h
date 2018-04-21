@@ -6,6 +6,7 @@
 #define MAXOPEN 4
 #define MAXFOUNDATION 4
 #define MAXRANKS 13
+#define MAXSTRING 255
 
 
 typedef struct card
@@ -166,5 +167,54 @@ void printHeader(_table *game);
 // Pré-condicao:
 // Pós-condicao:
 int printLine(_table *game);
+
+//
+// Entrada:
+// Retorno:
+// Pré-condicao:
+// Pós-condicao:
+int parse(char **line);
+
+//
+// Entrada:
+// Retorno:
+// Pré-condicao:
+// Pós-condicao:
+int valid(char *str);
+
+//
+// Entrada:
+// Retorno:
+// Pré-condicao:
+// Pós-condicao:
+void execute(char *command,int control, _table *game);
+
+//
+// Entrada:
+// Retorno:
+// Pré-condicao:
+// Pós-condicao:
+void validateMove(char *command, _table *game);
+
+//
+// Entrada:
+// Retorno:
+// Pré-condicao:
+// Pós-condicao:
+void save(_table *game);
+
+//
+// Entrada:
+// Retorno:
+// Pré-condicao:
+// Pós-condicao:
+void printHelp();
+
+//
+// Entrada:
+// Retorno:
+// Pré-condicao:
+// Pós-condicao:
+_node *getNode(char line,char row, _table *game);
 
 #endif

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "FreeCell.h"
 
@@ -13,9 +15,21 @@ int main(int argc, char const *argv[])
 
 	play(game);
 
+	system("pause");
+	system("cls");
 //	save(game);
 
 	return 0;
+}
+
+void load(_table *game, char const *argv[])
+{
+
+}
+
+void save(_table *game)
+{
+
 }
 
 void play(_table *game)
@@ -23,20 +37,107 @@ void play(_table *game)
 	int control = 1;
 	char *command;
 
+	printGame(game);
+
 	while(control)
 	{
 		system("cls");
 		printGame(game);
-//		control = parse(command);
-//		execute(command, control);
-//		free(command);
-		break;
+		printf("type \"?\" for help\n");
+		control = parse(&command);
+		printf("%s\n",command, game);
+		execute(command, control, game);
+		free(command);
 	}
+}
+
+void printHelp()
+{
+	system("pause");
+}
+
+void validateMove(char *command, _table *game)
+{
+	_node *from, *to;
+	if(strlen(command) != 6) printf("%s is a invalid movement\n", command );
+	from = getNode(command[0], command[1], game);
+	to = getNode(command[4], command[5], game);
+//	system("pause");
+}
+
+_node *getNode(char line, char row, _table *game)
+{
+	if( row < '0' || row > '8' || line < 'A' || line > 'Z' ) return NULL;
+	int i;
+	_node *search;
+
+	line -= 'A';
+	row -= '0'+1;
+
+	if(!line){
+		return row > 4 ? game->foundation[row]->tail : game->open[row];
+	}
+
+	search = game->cascade[row]->head;
+
+	for (i = 0; i < line-1; ++i)
+	{
+		if(!search) return NULL;
+		search = search->next;
+	}
+	return search;
+	system("pause");
+}
+
+
+void execute(char *command,int control, _table *game)
+{
+	switch(control){
+		case -1:
+			save(game);
+			break;
+		case 0:
+			printf("quitting without saving\n");
+			break;
+		case 1:
+			validateMove(command, game);
+			break;
+	}
+}
+
+
+int parse(char **line)
+{
+	int i;
+
+	char *aux = (char*)malloc(sizeof(char)*MAXSTRING);
+
+	scanf("%[^\n]%*c", aux);
+
+	if(strstr(aux, "?")) printHelp();
+
+	for (i = 0; aux[i]; ++i)
+	{
+		aux[i] = toupper(aux[i]);
+	}
+	while(strstr(aux, " "))
+	{
+		for (i = strlen(aux); i>=0; --i)
+		{
+			if(aux[i] == ' ') aux[i] += aux[i+1] -(aux[i+1] = aux[i]);
+		}
+	}
+
+	*line = aux;
+	if(strstr(aux, "QUIT") || strstr(aux, "EXIT") || !strcmp(aux, "QUIT") || !strcmp(aux, "EXIT"))
+		return 0;
+	if(strstr(aux, "SAVE")) return -1;
+	return 1;
 }
 
 void printGame(_table *game)
 {
-	int i;
+	int i, j;
 	int control = 1;
 	_node *aux[MAXCASCADES];
 
@@ -44,9 +145,10 @@ void printGame(_table *game)
 
 	for (i = 0; i < MAXCASCADES; ++i) aux[i] = game->cascade[i]->head;
 
-	while(control)
+	for(j=0; control; j++)
 	{
 		control = 0;
+		printf("%c | ", 'B' + j );
 		for (i = 0; i < MAXCASCADES; ++i)
 		{
 			if(aux[i]){
@@ -57,26 +159,31 @@ void printGame(_table *game)
 			if(i == 3) printf("        ");
 			control += (aux[i] > 0);
 		}
-		printf("\n");
+		printf("|\n");
 	}
+	printf("  |_________________________________________________________________________|\n");
 }
 
 
 void printHeader(_table *game)
 {
 	int i;
+
+
+	printf("   ____1_______2_______3_______4_______________5_______6_______7_______8____\nA | " );
+
 	for (i = 0; i < MAXOPEN; ++i)
 	{
 		if(game->open[i]) printf("[%s, %s] ", toSuit(game->open[i]), toRank(game->open[i]));
 		else printf("[--,--] ");
 	}
-	printf("	");
+	printf("        ");
 	for (i = 0; i < MAXFOUNDATION; ++i)
 	{
 		if(!empty(game->foundation[i])) printf("[%s, %s] ", toSuit(game->foundation[i]->tail), toRank(game->foundation[i]->tail));
 		else printf("[--,--] ");
 	}
-	printf("\n\n");
+	printf("|\n  |                                                                         |\n");
 }
 
 
@@ -120,19 +227,14 @@ char *toSuit(_node *cardHolder)
 	switch(cardHolder->card->suit)
 	{
 		case 0:
-			return "s\0";
+			return "S\0";
 		case 1:
-			return "h\0";
+			return "H\0";
 		case 2:
-			return "c\0";
+			return "C\0";
 		case 3:
-			return "d\0";
+			return "D\0";
 	}
-}
-
-void load(_table *game, char const *argv[])
-{
-
 }
 
 void startNewGame(_table *game)
@@ -145,7 +247,6 @@ void startNewGame(_table *game)
 
 	free(deck);
 }
-
 
 void createShuffledDeck(_list *l)
 {
