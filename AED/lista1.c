@@ -5,15 +5,35 @@
 int palin(char *str, int size);
 int expFac(int num, int exp);
 int somaDigs(int n);
+int subConj(char *str);
 
 int main(int argc, char const *argv[])
 {
 	char str[200];
 	// printf("%d", expFac(4, 4));
 	// printf("%d\n",somaDigs(1234) );
-	gets(str);
-	printf("%d\n",palin(str, strlen(str)));
+	//gets(str);
+	subConj("abc\0");
 	return 0;
+}
+
+int subConjRec(char *str, int count)
+{
+	int i;
+	if(count) subConjRec(str, count-1);
+	printf("%d -- ",count );
+
+	printf("{");
+	for (i = 0; str[i]; ++i)
+	{
+		if(i & count) printf("%c ", str[i] );
+	}
+	printf("}\n");
+}
+
+int subConj(char *str)
+{
+	subConjRec(str, pow(2, strlen(str))-1);
 }
 
 int expFac(int num, int exp) //questao 5?
