@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "FreeCell.h"
+#include "FreeCell 0.1.h"
 
 int main(int argc, char const *argv[])
 {
@@ -41,13 +41,15 @@ void play(_table *game)
 
 	while(control)
 	{
-		system("cls");
+//		system("cls");
 		printGame(game);
+		moveNode(game->cascade[0], game->cascade[1]);
 		printf("type \"?\" for help\n");
-		control = parse(&command);
-		printf("%s\n",command, game);
-		execute(command, control, game);
-		free(command);
+		//control = parse(&command);
+		//printf("%s\n",command, game);
+		//execute(command, control, game);
+		//free(command);
+		system("pause");
 	}
 }
 
@@ -62,7 +64,7 @@ void validateMove(char *command, _table *game)
 	if(strlen(command) != 6) printf("%s is a invalid movement\n", command );
 	from = getNode(command[0], command[1], game);
 	to = getNode(command[4], command[5], game);
-//	system("pause");
+//	system("pause");	
 }
 
 _node *getNode(char line, char row, _table *game)

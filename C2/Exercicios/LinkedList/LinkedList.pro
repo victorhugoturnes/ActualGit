@@ -4,11 +4,11 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    linkedlist.cpp
+    list.cpp
 
 include(deployment.pri)
 qtcAddDeployment()
 
 HEADERS += \
-    linkedlist.h
+    list.h
 

@@ -1,22 +1,19 @@
 #include <iostream>
-#include "linkedlist.h"
+#include "list.h"
 
 using namespace std;
 
 int main()
 {
-    LinkedList *test = new LinkedList(1);
-    test->insertTail(2);
-    test->insertTail(2);
-    test->insertTail(2);
-    test->insertHead(2);
-    test->insertHead(7);
-    test->insertTail(5);
-    test->insertTail(4);
-    test->insertTail(3);
+    cout << "Hello World!" << endl;
+    List *test = new List;
     test->printList();
-    test->destroy();
-    test;
+    test->addNode(2);
+    test->addNode(3);
+    test->addNode(4);
+    test->printList();
+    test->clearList();
+    test->printList();
     return 0;
 }
 
