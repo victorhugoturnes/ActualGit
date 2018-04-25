@@ -1,7 +1,44 @@
 #include "list.h"
 #include <iostream>
+#include <stdlib.h>
 
 using namespace std;
+
+_node *newNode(int info)
+{
+    _node *node = (_node*)malloc(sizeof(_node));
+    node->next = NULL;
+    node->info = info;
+    return node;
+}
+
+_node *insertTail(_node *node, int info)
+{
+    if(node){
+        node->next = insertTail(node->next, info);
+        return node;
+    }
+    return newNode(info);
+}
+
+void show(_node *node)
+{
+    if(node){
+       cout << "("
+            << node->info
+            << ")->";
+       show(node->next);
+    }else{
+        cout << "(!)"
+             << endl;
+    }
+}
+
+void clear(_node *node)
+{
+    if(node)  clear(node->next);
+    free(node);
+}
 
 List::List()
 {

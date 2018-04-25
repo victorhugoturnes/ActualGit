@@ -16,23 +16,12 @@
 // Retorno:
 // Pré-condicao:
 // Pós-condicao:
-char *rank[MAXRANKS] = {" A\0", " 1\0", " 2\0", " 3\0" " 4\0" " 5\0" " 6\0" " 7\0" " 8\0" " 9\0" "10\0" "J\0" " Q\0" " K\0"};
-/*
-char *toSuit(_node *cardHolder)
-{
-	switch(cardHolder->card->suit)
-	{
-		case 0:
-			return "S\0";
-		case 1:
-			return "H\0";
-		case 2:
-			return "C\0";
-		case 3:
-			return "D\0";
-	}
-}
-*/
+char *rank[MAXRANKS] = {" A", " 2", " 3", " 4",
+						" 5", " 6", " 7", " 8",
+ 						" 9", "10", " J", " Q", " K"};
+
+char *suit[MAXSUITS] = {" S", " H", " C", " D"};
+
 typedef struct card
 {
 	char suit;
@@ -57,12 +46,33 @@ typedef struct table
 	struct stack *cascade[MAXCASCADES];
 }_table;
 
-// imprime o header no console, sendo o header as open e foundations
+// printa as cascades do jogo atual
+// Entrada: array de ponteiros dos nodes iniciais de cada cascade
+// Retorno: nenhum
+// Pré-condicao: nenhum
+// Pós-condicao: nenhum
+void printCascades(_node *tracer[]);
+
+// devolve uma copia invertida de uma lista
+// Entrada: lista
+// Retorno: copia invertida da lista
+// Pré-condicao: nenhuma
+// Pós-condicao: nenhuma
+_node *invert(_node * node);
+
+// elimina uma lista de nodes
+// Entrada: uma lista de nodes
+// Retorno: nenhum
+// Pré-condicao: nenhum
+// Pós-condicao: nodes liberados
+void clear(_node *node);
+
+// imprime o body ou cascades do jogo na tela
 // Entrada: jogo atual
 // Retorno: nenhum
-// Pré-condicao: jogo existe
+// Pré-condicao: nenhum
 // Pós-condicao: nenhum
-void printHeader(_table *game);
+void printBody(_table *game);
 
 // imprime o jogo atual no console
 // Entrada: jogo atual
@@ -70,6 +80,13 @@ void printHeader(_table *game);
 // Pré-condicao: nenhum
 // Pós-condicao: nenhum
 void printTable(_table *game);
+
+// imprime o header no console, sendo o header as open e foundations
+// Entrada: jogo atual
+// Retorno: nenhum
+// Pré-condicao: jogo existe
+// Pós-condicao: nenhum
+void printHeader(_table *game);
 
 // move um elemeto de um stack para outro
 // Entrada: stacks fonte e destino;

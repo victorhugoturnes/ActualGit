@@ -110,7 +110,7 @@ compiler_clean:
 
 ####### Compile
 
-debug/main.o: ../LinkedList/main.cpp 
+debug/main.o: ../LinkedList/main.cpp ../LinkedList/list.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\main.o ..\LinkedList\main.cpp
 
 debug/list.o: ../LinkedList/list.cpp ../LinkedList/list.h

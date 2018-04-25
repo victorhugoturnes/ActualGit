@@ -1,6 +1,14 @@
 #ifndef LIST_H
 #define LIST_H
+typedef struct node{
+    struct node *next;
+    int info;
+}_node;
 
+_node *newNode(int info);
+_node *insertTail(_node *node, int info);
+void show(_node *node);
+void clear(_node *node);
 
 class Node
 {
