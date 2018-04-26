@@ -20,7 +20,7 @@ void printList(_node *n)
 
 ///TODO FUNCTIONS
 _table *load(char const *str[]);
-int validate(char *command);
+int validate(char *command, _table *game);
 void executeCommand(int control, char *command, _table *game);
 void parseCommand(char *str);
 _table *load(char const *str[])
@@ -43,8 +43,7 @@ int main(int argc, char const *argv[])
 		system("cls");
 		printTable(game);
 		parseCommand(command);
-		control = validate(command);
-		executeCommand(control, command, game);
+		control = validate(command, game);
 		printf("%s\n",command );
 		system("pause");
 	}
@@ -52,19 +51,61 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-int validate(char *command)
+int validate(char *command, _table *game)
 {
+	_stack *from = NULL;
+	_stack *to = NULL;
+	char flag;
 
-}
+	if(command[0] == 'Q') return 0;
 
-void executeCommand(int control, char *command, _table *game)
-{
+	if(command[0] >= '1' && command[0] < '1' + MAXCASCADES) from = game->cascade[command[0] - '1'];
+	if(command[0] >= 'A' && command[0] < 'A' + MAXOPEN) from = game->open[command[0] - 'A'];
+	if(command[0] >= 'A' + MAXOPEN && command[0] < 'A' + MAXOPEN + MAXFOUNDATION) from = game->foundation[command[0] - 'A' - MAXOPEN];
 
+	if(command[1] >= '1' && command[1] < '1' + MAXCASCADES)
+	{
+		to = game->cascade[command[1] - '1'];
+		flag = 1;
+	}
+	if(command[1] >= 'A' && command[1] < 'A' + MAXOPEN)
+	{
+		to = game->open[command[1] - 'A'];
+		flag = 2;
+	}
+	if(command[1] >= 'A' + MAXOPEN && command[1] < 'A' + MAXOPEN + MAXFOUNDATION)
+	{
+		flag = 3;
+		to = game->foundation[command[1] - 'A' - MAXOPEN];
+	}
+
+	if(!from || !to ) return 1;
+	if(!from->top) return 1;
+
+	if(flag == 1){
+		if(!to->top || (from->top->card->suit % 2 != to->top->card->suit %2)){
+			if(!to->top || (from->top->card->rank +1 == to->top->card->rank)){
+				moveNode(from, to);
+			}
+		}
+	}
+	if(flag == 2){
+		if(from->top != NULL && to->top == NULL)moveNode(from, to);
+	}
+	if(flag == 3){
+		if(!to->top || (from->top->card->suit == to->top->card->suit)){
+			if(from->top->card->rank == 0 && !to->top) moveNode(from, to);
+			if(to->top && from->top->card->rank - 1 == to->top->card->rank) moveNode(from, to);
+		}
+	}
+	return 1;
 }
 
 void parseCommand(char *str)
 {
 	scanf(" %c %c", &str[0], &str[1]);
+	str[0] = toupper(str[0]);
+	str[1] = toupper(str[1]);
 	fflush(stdin);
 }
 
@@ -242,7 +283,7 @@ _node *createShuffledDeck()
 
 	for (i = 0; i < MAXCARDS; ++i) cards[i] = newCard(i%MAXRANKS, i/MAXRANKS);
 
-	shuffle(cards);
+	//shuffle(cards);
 
 	for (i = 0; i < MAXCARDS; ++i) l = insertHead(l, cards[i]);
 }

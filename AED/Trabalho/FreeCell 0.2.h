@@ -20,7 +20,7 @@ char *rank[MAXRANKS] = {" A", " 2", " 3", " 4",
 						" 5", " 6", " 7", " 8",
  						" 9", "10", " J", " Q", " K"};
 
-char *suit[MAXSUITS] = {" S", " H", " C", " D"};
+char *suit[MAXSUITS] = {"-S", "+H", "-C", "+D"};
 
 typedef struct card
 {
