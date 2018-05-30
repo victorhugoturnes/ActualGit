@@ -4,136 +4,278 @@
 #include <string.h>
 #include <ctype.h>
 #include <locale.h>
+#include <windows.h>
 
 #include "FreeCell 0.2.h"
+void printCard(Card *card);
 
 //debug functions
-void printList(_node *n)
+void printList(Node *n)
 {
-	if(n)
+	if (n)
 	{
-		printf("[%d, %d]\n", n->card->suit, n->card->rank);
+		printCard(n->card);
 		printList(n->next);
 	}
-	else printf("(!)");
+	else
+		printf("(!)");
 }
 
 ///TODO FUNCTIONS
-_table *load(char const *str[]);
-int validate(char *command, _table *game);
-void executeCommand(int control, char *command, _table *game);
-void parseCommand(char *str);
-_table *load(char const *str[])
-{
-	//TODO: load game
-}
+Table *load(char const *str);
+int validate(Movement *command, Table *game);
+void executeCommand(Movement *command);
+void parseCommand(Movement *command);
+void save(Table *game);
+void saveStack(Node *node, FILE *file);
 
 int main(int argc, char const *argv[])
 {
 	setlocale(LC_ALL, "Portuguese");
 
-	_table *game;
+	Table *game;
+	Movement *command = (Movement *)malloc(sizeof(Movement));
+
 	int control = 1;
-	char command[3] = {0};
 
-	game = argc > 1 ? load(argv) : newGame();
+	game = argc > 1 ? load(argv[1]) : newGame();
 
-	while(control)
+	while (control)
 	{
 		system("cls");
 		printTable(game);
 		parseCommand(command);
 		control = validate(command, game);
-		printf("%s\n",command );
-		system("pause");
+		if (control > 0)
+		{
+			executeCommand(command);
+		}
 	}
 
 	return 0;
 }
 
-int validate(char *command, _table *game)
+void loadStack(Stack *stack, FILE *file)
 {
-	_stack *from = NULL;
-	_stack *to = NULL;
-	char flag;
-
-	if(command[0] == 'Q') return 0;
-
-	if(command[0] >= '1' && command[0] < '1' + MAXCASCADES) from = game->cascade[command[0] - '1'];
-	if(command[0] >= 'A' && command[0] < 'A' + MAXOPEN) from = game->open[command[0] - 'A'];
-	if(command[0] >= 'A' + MAXOPEN && command[0] < 'A' + MAXOPEN + MAXFOUNDATION) from = game->foundation[command[0] - 'A' - MAXOPEN];
-
-	if(command[1] >= '1' && command[1] < '1' + MAXCASCADES)
+	int card;
+	fread(&card, sizeof(int), 1, file);
+	while (card != -1 && !feof(file))
 	{
-		to = game->cascade[command[1] - '1'];
-		flag = 1;
+		stack->top = insertHead(stack->top, newCard(card % MAXRANKS, card / MAXRANKS));
+		fread(&card, sizeof(int), 1, file);
 	}
-	if(command[1] >= 'A' && command[1] < 'A' + MAXOPEN)
-	{
-		to = game->open[command[1] - 'A'];
-		flag = 2;
-	}
-	if(command[1] >= 'A' + MAXOPEN && command[1] < 'A' + MAXOPEN + MAXFOUNDATION)
-	{
-		flag = 3;
-		to = game->foundation[command[1] - 'A' - MAXOPEN];
-	}
+}
 
-	if(!from || !to ) return 1;
-	if(!from->top) return 1;
+Table *load(char const *str)
+{
+	Table *game = newTable();
+	FILE *file = fopen(str, "rb");
+	if (!file)
+		return newGame();
+	int i;
+	for (i = 0; i < MAXOPEN; i++)
+	{
+		loadStack(game->open[i], file);
+	}
+	for (i = 0; i < MAXFOUNDATION; i++)
+	{
+		loadStack(game->foundation[i], file);
+	}
+	for (i = 0; i < MAXCASCADES; i++)
+	{
+		loadStack(game->cascade[i], file);
+	}
+	fclose(file);
+	return game;
+}
 
-	if(flag == 1){
-		if(!to->top || (from->top->card->suit % 2 != to->top->card->suit %2)){
-			if(!to->top || (from->top->card->rank +1 == to->top->card->rank)){
-				moveNode(from, to);
+void saveStack(Node *node, FILE *file)
+{
+	int card = -1;
+	if (node)
+	{
+		saveStack(node->next, file);
+		card = node->card->rank + node->card->suit * MAXRANKS;
+		fwrite(&card, sizeof(int), 1, file);
+	}
+}
+
+void save(Table *game)
+{
+	printf("please enter filename\n");
+	char fileName[MAXSTRING];
+	scanf("%s", fileName);
+	FILE *file = fopen(fileName, "wb+");
+	int i, card = -1;
+	for (i = 0; i < MAXOPEN; i++)
+	{
+		saveStack(game->open[i]->top, file);
+		fwrite(&card, sizeof(int), 1, file);		
+	}
+	for (i = 0; i < MAXFOUNDATION; i++)
+	{
+		saveStack(game->foundation[i]->top, file);
+		fwrite(&card, sizeof(int), 1, file);
+	}
+	for (i = 0; i < MAXCASCADES; i++)
+	{
+		saveStack(game->cascade[i]->top, file);
+		fwrite(&card, sizeof(int), 1, file);
+	}
+	fclose(file);
+}
+
+void executeCommand(Movement *command)
+{
+	if (!command->from->top)
+		return;
+	if (command->to->type == 'O' && !command->to->top)
+	{
+		moveNode(command->from, command->to);
+		return;
+	}
+	if (command->to->type == 'C')
+	{
+		if (!command->to->top)
+		{
+			moveNode(command->from, command->to);
+			return;
+		}
+		if (command->from->top->card->suit % 2 != command->to->top->card->suit % 2)
+		{
+			if (command->from->top->card->rank + 1 == command->to->top->card->rank)
+			{
+				moveNode(command->from, command->to);
+				return;
 			}
 		}
 	}
-	if(flag == 2){
-		if(from->top != NULL && to->top == NULL)moveNode(from, to);
-	}
-	if(flag == 3){
-		if(!to->top || (from->top->card->suit == to->top->card->suit)){
-			if(from->top->card->rank == 0 && !to->top) moveNode(from, to);
-			if(to->top && from->top->card->rank - 1 == to->top->card->rank) moveNode(from, to);
+	if (command->to->type == 'F')
+	{
+		if (command->from->top->card->rank == 0 && !command->to->top)
+		{
+			moveNode(command->from, command->to);
+			return;
+		}
+		if (command->from->top->card->suit == command->to->top->card->suit)
+		{
+			if (command->from->top->card->rank - 1 == command->to->top->card->rank)
+			{
+				moveNode(command->from, command->to);
+			}
 		}
 	}
+}
+
+void printCard(Card *card)
+{
+	// SetConsoleTextAttribute(hConsole, 28);
+
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+	WORD saved_attributes;
+
+	/* Save current attributes */
+	GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+	saved_attributes = consoleInfo.wAttributes;
+
+	if (card->suit % 2)
+	{
+		SetConsoleTextAttribute(hConsole, 86);
+	}
+	else
+	{
+		SetConsoleTextAttribute(hConsole, 88);
+	}
+
+	printf("[%s,%s] ", suit[card->suit], rank[card->rank]);
+
+	/* Restore original attributes */
+	SetConsoleTextAttribute(hConsole, saved_attributes);
+}
+
+int validate(Movement *command, Table *game)
+{
+	command->from = NULL;
+	command->to = NULL;
+
+	if (command->f == 'Q')
+	{
+		return 0;
+	}
+	if (command->f == 'S')
+	{
+		save(game);
+		return -1;
+	}
+	if (command->f >= '1' && command->f < '1' + MAXCASCADES)
+	{
+		command->from = game->cascade[command->f - '1'];
+	}
+	if (command->f >= 'A' && command->f < 'A' + MAXOPEN)
+	{
+		command->from = game->open[command->f - 'A'];
+	}
+
+	if (command->t >= '1' && command->t < '1' + MAXCASCADES)
+	{
+		command->to = game->cascade[command->t - '1'];
+	}
+	if (command->t >= 'A' && command->t < 'A' + MAXOPEN)
+	{
+		command->to = game->open[command->t - 'A'];
+	}
+	if (command->t >= 'A' + MAXOPEN && command->t < 'A' + MAXOPEN + MAXFOUNDATION)
+	{
+		command->to = game->foundation[command->t - 'A' - MAXOPEN];
+	}
+
+	if (!command->from || !command->to)
+		return -1;
 	return 1;
 }
 
-void parseCommand(char *str)
+void parseCommand(Movement *command)
 {
-	scanf(" %c %c", &str[0], &str[1]);
-	str[0] = toupper(str[0]);
-	str[1] = toupper(str[1]);
+	scanf(" %c", &command->f);
+	command->f = toupper(command->f);
+	if (command->f != 'S' && command->f != 'Q')
+	{
+		scanf(" %c", &command->t);
+		command->t = toupper(command->t);
+	}
+	else
+	{
+		command->t = '\0';
+	}
 	fflush(stdin);
 }
 
-void printCascades(_node *tracer[])
+void printCascades(Node *tracer[])
 {
-
-	int i;
-	int hasNextLine;
-
+	int i, hasNextLine;
 	printf("\n|   ");
-	for ( i = hasNextLine = 0; i < MAXCASCADES; ++i)
+	for (i = hasNextLine = 0; i < MAXCASCADES; ++i)
 	{
-		if(!tracer[i]) printf("        ");
-		else{
-			printf("[%s,%s] ", suit[tracer[i]->card->suit], rank[tracer[i]->card->rank]);
-			if(tracer[i]->next) hasNextLine++;
+		if (!tracer[i])
+			printf("        ");
+		else
+		{
+			printCard(tracer[i]->card);
+			if (tracer[i]->next)
+				hasNextLine++;
 			tracer[i] = tracer[i]->next;
 		}
 	}
 	printf("  |");
-	if(hasNextLine) printCascades(tracer);
+	if (hasNextLine)
+		printCascades(tracer);
 }
 
-_node *invert(_node * node)
+Node *invert(Node *node)
 {
 	int i;
-	_node *aux = NULL;
-
+	Node *aux = NULL;
 	for (i = 0; node; ++i)
 	{
 		aux = insertHead(aux, node->card);
@@ -142,164 +284,181 @@ _node *invert(_node * node)
 	return aux;
 }
 
-void clear(_node *node)
+void clear(Node *node)
 {
-	if(node) clear(node->next);
-	free(node);
+	if (node)
+	{
+		clear(node->next);
+		free(node);
+	}
 }
 
-void printBody(_table *game)
+void printBody(Table *game)
 {
-	_node *tracer[MAXCASCADES];
+	Node *tracer[MAXCASCADES];
 	int i;
 
-	for (i = 0; i < MAXCASCADES; ++i) tracer[i] = invert(game->cascade[i]->top);
+	for (i = 0; i < MAXCASCADES; ++i)
+		tracer[i] = invert(game->cascade[i]->top);
 
 	printCascades(tracer);
 
 	printf("\n|");
-	for (i = 0; i < MAXOPEN+MAXFOUNDATION; ++i) printf("        ");
+	for (i = 0; i < MAXOPEN + MAXFOUNDATION; ++i)
+		printf("        ");
 	printf("     |\n|");
-	for (i = 0; i < MAXOPEN+MAXFOUNDATION; ++i)printf("_______%d", i+1);
+	for (i = 0; i < MAXOPEN + MAXFOUNDATION; ++i)
+		printf("_______%d", i + 1);
 	printf("_____|\n");
 
-
-	for ( i = 0; i < MAXCASCADES; ++i) clear(tracer[i]);
+	for (i = 0; i < MAXCASCADES; ++i)
+		clear(tracer[i]);
 }
 
-void printTable(_table *game)
+void printTable(Table *game)
 {
-	if(!game)return (void) printf("invalid game\n");
 	printHeader(game);
 	printBody(game);
 	printf("\n");
 }
 
-void printHeader(_table *game)
+void printHeader(Table *game)
 {
 	int i;
 
-	for (i = 0; i < MAXOPEN; ++i) printf("____%c___", 'A' + i );
+	for (i = 0; i < MAXOPEN; ++i)
+		printf("____%c___", 'A' + i);
 	printf("______");
-	for (i = 0; i < MAXFOUNDATION; ++i) printf("___%c____", 'A'+ MAXOPEN + i );
+	for (i = 0; i < MAXFOUNDATION; ++i)
+		printf("___%c____", 'A' + MAXOPEN + i);
 	printf("\n|");
-	for (i = 0; i < MAXOPEN; ++i){
-		if(!game->open[i]->top)printf("[--,--] ");
-		else{
-			int rankValue = game->open[i]->top->card->rank;
-			int suitValue = game->open[i]->top->card->suit;
-			printf("[%s,%s] ", suit[suitValue], rank[rankValue] );
+	for (i = 0; i < MAXOPEN; ++i)
+	{
+		if (!game->open[i]->top)
+			printf("[--,--] ");
+		else
+		{
+			printCard(game->open[i]->top->card);
 		}
 	}
 	printf("     ");
-	for (i = 0; i < MAXFOUNDATION; ++i){
-		if(!game->foundation[i]->top) printf("[--,--] ");
-		else {
-			char rankValue = game->foundation[i]->top->card->rank;
-			char suitValue = game->foundation[i]->top->card->suit;
-			printf("[%s,%s] ", suit[suitValue], rank[rankValue] );
+	for (i = 0; i < MAXFOUNDATION; ++i)
+	{
+		if (!game->foundation[i]->top)
+			printf("[--,--] ");
+		else
+		{
+			printCard(game->foundation[i]->top->card);
 		}
 	}
 
 	printf("|\n|");
-	for (i = 0; i < MAXOPEN+MAXFOUNDATION; ++i) printf("        ");
+	for (i = 0; i < MAXOPEN + MAXFOUNDATION; ++i)
+		printf("        ");
 	printf("     |");
 }
 
-void moveNode(_stack *from, _stack *to)
+void moveNode(Stack *from, Stack *to)
 {
-	if(!from->top) return;
+	if (!from->top)
+		return;
 
-	_node *tracer = from->top;
+	Node *tracer = from->top;
 	from->top = from->top->next;
 
 	tracer->next = to->top;
 	to->top = tracer;
 }
 
-_table *toTable(_stack *deck)
+Table *toTable(Stack *deck)
 {
 	int i;
-	_table *game = newTable();
+	Table *game = newTable();
 
-	for ( i = 0; deck->top; ++i) moveNode(deck, game->cascade[i%MAXCASCADES]);
+	for (i = 0; deck->top; ++i)
+		moveNode(deck, game->cascade[i % MAXCASCADES]);
 
 	return game;
 }
 
-_table *newTable()
+Table *newTable()
 {
-	_table *table = (_table*) malloc(sizeof(_table));
+	Table *table = (Table *)malloc(sizeof(Table));
 	int i;
 
-	for ( i = 0; i < MAXFOUNDATION; ++i)
+	for (i = 0; i < MAXFOUNDATION; ++i)
 	{
-		table->foundation[i] = (_stack*)malloc(sizeof(_stack));
+		table->foundation[i] = (Stack *)malloc(sizeof(Stack));
+		table->foundation[i]->type = 'F';
 		table->foundation[i]->top = NULL;
 	}
 
-	for ( i = 0; i < MAXOPEN; ++i)
+	for (i = 0; i < MAXOPEN; ++i)
 	{
-		table->open[i] = (_stack*)malloc(sizeof(_stack));
+		table->open[i] = (Stack *)malloc(sizeof(Stack));
+		table->open[i]->type = 'O';
 		table->open[i]->top = NULL;
 	}
 
-	for ( i = 0; i < MAXCASCADES; ++i)
+	for (i = 0; i < MAXCASCADES; ++i)
 	{
-		table->cascade[i] = (_stack*)malloc(sizeof(_stack));
+		table->cascade[i] = (Stack *)malloc(sizeof(Stack));
+		table->cascade[i]->type = 'C';
 		table->cascade[i]->top = NULL;
 	}
 	return table;
 }
 
-_table *newGame()
+Table *newGame()
 {
-	_stack *deck = (_stack*)malloc(sizeof(_stack));
+	Stack *deck = (Stack *)malloc(sizeof(Stack));
 	deck->top = createShuffledDeck();
-	_table *game = toTable(deck);
+	Table *game = toTable(deck);
 	free(deck);
 	return game;
 }
 
-void shuffle(_card *cards[])
+void shuffle(Card *cards[])
 {
 	int i;
 	srand(time(NULL));
 
 	for (i = 0; i < MAXCARDS; ++i)
 	{
-		int temp = i + rand() % (MAXCARDS-i);
-		_card *aux = cards[i];
+		int temp = i + rand() % (MAXCARDS - i);
+		Card *aux = cards[i];
 		cards[i] = cards[temp];
 		cards[temp] = aux;
 	}
 }
 
-_node *createShuffledDeck()
+Node *createShuffledDeck()
 {
 	int i;
-	_node *l = NULL;
-	_card *cards[MAXCARDS];
+	Node *l = NULL;
+	Card *cards[MAXCARDS];
 
-	for (i = 0; i < MAXCARDS; ++i) cards[i] = newCard(i%MAXRANKS, i/MAXRANKS);
+	for (i = 0; i < MAXCARDS; ++i)
+		cards[i] = newCard(i % MAXRANKS, i / MAXRANKS);
 
-	//shuffle(cards);
+	shuffle(cards);
 
-	for (i = 0; i < MAXCARDS; ++i) l = insertHead(l, cards[i]);
+	for (i = 0; i < MAXCARDS; ++i)
+		l = insertHead(l, cards[i]);
 }
 
-_card *newCard(char rank, char suit)
+Card *newCard(char rank, char suit)
 {
-	_card *aux = (_card*)malloc(sizeof(_card));
+	Card *aux = (Card *)malloc(sizeof(Card));
 	aux->rank = rank;
 	aux->suit = suit;
 	return aux;
 }
 
-_node *insertHead(_node *l, _card *c)
+Node *insertHead(Node *l, Card *c)
 {
-	_node *aux = (_node*)malloc(sizeof(_node));
+	Node *aux = (Node *)malloc(sizeof(Node));
 	aux->card = c;
-	aux-> next = l;
+	aux->next = l;
 	return aux;
 }
