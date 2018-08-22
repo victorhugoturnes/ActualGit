@@ -7,8 +7,8 @@ private:
     char nome[31];
     char endereco[40];
 public:
-    void setar();
-    void mostrar();
+    void set();
+    void get();
     ~Pessoa();
 };
 
